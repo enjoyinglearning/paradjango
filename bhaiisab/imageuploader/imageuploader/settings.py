@@ -19,17 +19,14 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-(9v^_de(&bc-e!53rl%@g6r1m5yytu4&(1r3y7970(&z-($qif'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-(9v^_de(&bc-e!53rl%@g6r1m5yytu4&(1r3y7970(&z-($qif')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+# Allow production hosts
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else []
 
 
 # Application definition
@@ -45,6 +42,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -80,11 +78,11 @@ WSGI_APPLICATION = 'imageuploader.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ohhno',
-        'USER': 'postgres',
-        'PASSWORD': '137511',
-        'HOST': 'localhost',  # PostgreSQL location
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME', 'ohhno'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', '137511'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -112,7 +110,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'Asia/Kathmandu'
 USE_I18N = True
 USE_TZ = True
@@ -122,8 +119,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 
-# For production (collect static files)
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# Security settings for production
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_REDIRECT_EXEMPT = []
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    X_FRAME_OPTIONS = 'DENY'

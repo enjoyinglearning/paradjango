@@ -1,0 +1,45 @@
+services:
+  # Web Service
+  - type: web
+    name: imageuploader
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    startCommand: "gunicorn imageuploader.wsgi:application"
+    healthCheckPath: /
+    healthCheckTimeout: 100
+    autoDeploy: true
+    envVars:
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+      - key: DB_NAME
+        fromDatabase:
+          name: imageuploader-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: imageuploader-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: imageuploader-db
+          property: password
+      - key: DB_HOST
+        fromDatabase:
+          name: imageuploader-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: imageuploader-db
+          property: port
+
+  # PostgreSQL Database
+  - type: pserv
+    name: imageuploader-db
+    runtime: postgres
+    plan: free
+    region: oregon

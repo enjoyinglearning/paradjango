@@ -4,8 +4,8 @@ services:
     name: imageuploader
     runtime: python
     plan: free
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
-    startCommand: "gunicorn imageuploader.wsgi:application"
+    buildCommand: "pip install uv && uv pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    startCommand: "uv run gunicorn imageuploader.wsgi:application"
     healthCheckPath: /
     healthCheckTimeout: 100
     autoDeploy: true
@@ -16,26 +16,12 @@ services:
         generateValue: true
       - key: ALLOWED_HOSTS
         value: .onrender.com
-      - key: DB_NAME
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://.onrender.com
+      - key: DATABASE_URL
         fromDatabase:
           name: imageuploader-db
-          property: database
-      - key: DB_USER
-        fromDatabase:
-          name: imageuploader-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: imageuploader-db
-          property: password
-      - key: DB_HOST
-        fromDatabase:
-          name: imageuploader-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: imageuploader-db
-          property: port
+          property: connectionString
 
   # PostgreSQL Database
   - type: pserv
